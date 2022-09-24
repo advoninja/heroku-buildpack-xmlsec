@@ -6,24 +6,16 @@
 
 set -e
 
-BIN_DIR=$(cd "$(dirname "$0")"; pwd) # absolute path
-ROOT_DIR=$(dirname "$BIN_DIR")
 BUILDPACK_DIR=$(cd "$(dirname "${0:-}")"; cd ..; pwd)
 
 echo "-----> BUILDPACK_DIR:"
 echo $BUILDPACK_DIR
-echo "-----> BIN_DIR:"
-echo $BIN_DIR
-echo "-----> ROOT_DIR:"
-echo $ROOT_DIR
 
 BUILD_DIR=${1:-}
 CACHE_DIR=${2:-}
 ENV_DIR=${3:-}
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ZIP_PATH=$SCRIPT_DIR/../xmlsec.tar.gz
-# Create the install directory
-VENDOR_DIR=".heroku/vendor"
 
 INSTALL_PATH="${BUILD_DIR}/.heroku/vendor/xmlsec1"
 
@@ -34,20 +26,18 @@ write_export() {
   # only write the export script if the buildpack directory is writable.
   # this may occur in situations outside of Heroku, such as running the
   # buildpacks locally.
-  echo "Creating export file:"
+  echo "-----> Creating export file"
   echo "${bp_dir}/export"
   if [ -w "$bp_dir" ]; then
     echo "export PATH=\"$build_dir/.heroku/vendor/xmlsec1/bin:\$PATH:${HOME}/.heroku/vendor/xmlsec1/bin\"" > "$bp_dir/export"
     echo "export LD_LIBRARY_PATH=\"$build_dir/.heroku/vendor/xmlsec1/lib:\$LD_LIBRARY_PATH:${HOME}/.heroku/vendor/xmlsec1/lib\"" >> "$bp_dir/export"
     echo "export PKG_CONFIG_PATH=\"$build_dir/.heroku/vendor/xmlsec1/lib/pkgconfig:\$PKG_CONFIG_PATH:${HOME}/.heroku/vendor/xmlsec1/lib/pkgconfig\"" >> "$bp_dir/export"
-    echo "export CFLAGS=\"-I$build_dir/.heroku/vendor/xmlsec1/include/xmlsec1 -L$build_dir/.heroku/vendor/xmlsec1/lib\"" >> "$bp_dir/export"
-    echo "export LIBXMLSEC1=\"$build_dir/.heroku/vendor/xmlsec1\"" >> "$bp_dir/export"
+    echo "export CPATH=\"$build_dir/.heroku/vendor/xmlsec1/include/xmlsec1:$CPATH\"" >> "$bp_dir/export"
+    echo "export LIBRARY_PATH=\"$build_dir/.heroku/vendor/xmlsec1/lib:$LIBRARY_PATH\"" >> "$bp_dir/export"
   fi
   ls -al "${bp_dir}/export"
   cat "${bp_dir}/export"
 }
-
-
 
 mkdir -p $INSTALL_PATH
 
@@ -60,47 +50,16 @@ tar -zxf $ZIP_PATH -C $INSTALL_PATH
 echo "-----> Build dir:"
 echo $BUILD_DIR
 
-echo "-----> Cache dir:"
-echo $CACHE_DIR
-
-echo "-----> Install Path:"
-echo $INSTALL_PATH
-
-echo "-----> Home dir:"
-echo $HOME
-
 echo "-----> Exporting path"
 
 PROFILE_PATH="$BUILD_DIR/.profile.d/xmlsec1.sh"
 mkdir -p $(dirname $PROFILE_PATH)
 
-#echo 'export PATH="$PATH":'"${INSTALL_PATH}/bin" >> $PROFILE_PATH
-#echo 'export LD_LIBRARY_PATH="$LD_LIBRARY_PATH":'"${INSTALL_PATH}/lib" >> $PROFILE_PATH
 echo 'export PATH="$PATH:${HOME}/.heroku/vendor/xmlsec1/bin"' >> $PROFILE_PATH
 echo 'export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${HOME}/.heroku/vendor/xmlsec1/lib"' >> $PROFILE_PATH
-echo export LIBXMLSEC1="${INSTALL_PATH}" >> $PROFILE_PATH
-echo export CFLAGS="-I${INSTALL_PATH}/include/xmlsec1" >> $PROFILE_PATH
-#echo "export PATH=\$PATH:$HOME/vendor/bin" >> $PROFILE_PATH
-
-export PATH="$PATH:$HOME/.heroku/vendor/xmlsec1/bin"
-export PATH="$PATH:$HOME/.heroku/vendor/bin"
-export PATH="$PATH:${INSTALL_PATH}/bin"
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${INSTALL_PATH}/lib"
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${HOME}/.heroku/xmlsec1/lib"
-echo "$PATH"
-echo "$LD_LIBRARY_PATH"
-
-echo "-----> Exporting flags"
-
-export LIBXMLSEC1=${INSTALL_PATH}
-export CFLAGS="-I${INSTALL_PATH}/include/xmlsec1"
 
 write_export "$BUILDPACK_DIR" "$BUILD_DIR"
 
 # finish
-echo "-----> Updated profile.d"
-cat $PROFILE_PATH
 
 echo "-----> Installed xmlsec1"
-ls -lrt ${INSTALL_PATH}/bin ${INSTALL_PATH}/lib
-
