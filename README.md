@@ -6,8 +6,8 @@ A buildpack for installing xmlsec1 on Heroku
 
 You may need to use this buildpack in conjunction with another; use the `heroku` cli 
 
-    heroku buildpacks:add https://github.com/adipon/heroku-buildpack-xmlsec#1.2.31
-    
+    heroku buildpacks:add --index 1 https://github.com/advoninja/heroku-buildpack-xmlsec#1.2.34
+
 or use the heroku admin website to add that buildpack.
 
 
@@ -61,7 +61,7 @@ The downside of this is that it expects you to have Docker installed locally.
 ## How to update the binary
 
 ```bash
-$ export VERSION=1.2.31 # or whatever the version you want to build
+$ export VERSION=1.2.34 # or whatever the version you want to build
 $ git rm *.sig
 $ make build
 $ make release
@@ -73,4 +73,4 @@ $ git push --follow-tags
 Then update your heroku application to use the buildpack with the tag you just
 set e.g:
 
-    https://github.com/adipon/heroku-buildpack-xmlsec#1.2.31
+    heroku buildpacks:add --index 1 https://github.com/advoninja/heroku-buildpack-xmlsec#1.2.34
